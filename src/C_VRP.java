@@ -1,67 +1,209 @@
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.lang.Math;
+import java.util.regex.*;
 /* VRP问题的模型*/
+class Vehicle
+{
+    ArrayList<Customer> route_number = new ArrayList<>();//用列表存放车辆路径
+    double route_weight = 0; //车辆路径的当前容量
+    double route_length = 0; //长度
+    double CAPACITY = 0;//容量约束
+    public void setRoute_length()
+    {
+        for(Customer c : route_number)
+        {
+
+        }
+    }
+}
+
+
+class Solution
+{
+    ArrayList<Vehicle> route_Vehicle = new ArrayList<>();//用列表存放车辆路径
+    int vehicle_number = 0;//车辆数量
+    int total_length = 0 ;//路径总长
+    public void setTotal_length()//获取总路径长度
+    {
+        for(Vehicle v:route_Vehicle) total_length += v.route_length;
+    }
+
+}
+
+
+class Customer//顾客类，
+{
+    int id;//id
+    int x;
+    int y;//顾客位置
+    int goods_need;//需求量
+    public void setCustomer(int x,int y,int id,int goods_need)//初始化方法
+    {
+        this.x = x;
+        this.y = y;
+        this.id = id;
+        this.goods_need = goods_need;
+    }
+
+}
+class  Depot extends Customer //配送中心，继承顾客类，多态
+{
+    int goods_need = 0;
+}
 public class C_VRP {
-
-    final double CAPACITY = 0;//容量约束
-    final double DI
-
+    static int CAPACITY =0 ;
+    static int vehicleNumber = 0;//车辆数量
+    static int customerNumber = 0;//顾客数量
+    static double[][] cost_matrix; // 距离矩阵，方便调用
+    static ArrayList<Customer> customers = new ArrayList<>();
+    static Depot depot;
     public static double distance(Customer a,Customer b)
     {
         return Math.sqrt((a.x-b.x)*(a.x-b.x) +(a.y - b.y)*(a.y - b.y));//计算两个位置
     }
 
-    public static void input_txt()//从txt文件里读取,输入文件格式参照TSPLIB95
+    public static void input_txt(String input)//从txt文件里读取,输入文件格式参照TSPLIB95
     {
-        File input_data = new File("./input");
-        try {
-            BufferedReader bf = new BufferedReader(new FileReader(input_data));
-            String content = " ";
-            while(content != null)
-            {
-                content = bf.readLine();
+        File input_data = new File(input);
 
+        try{
+            BufferedReader br = new BufferedReader(new FileReader(input_data));
+            String line = " ";
+            int i = 1;
+            System.out.println("————————————————————输入中——————————————————");
+            while(true)
+            {
+
+                line = br.readLine();
+
+                if(line.equals("END"))
+                {
+                    System.out.println("输入结束");
+                    break;
+                }
+                String str[] = line.split(" ");
+
+
+                if(i == 1)
+                {
+                    customerNumber = Integer.valueOf(line)-1;
+                    vehicleNumber  = customerNumber;//没有车辆约束，车辆数量就等于顾客数量
+                }
+                else if(i == 2)
+                {
+                    CAPACITY = Integer.valueOf(line);
+                }
+                else if(i == 3)
+                {
+                    depot = new Depot();
+                    depot.setCustomer(Integer.valueOf(str[1]),Integer.valueOf(str[2]),Integer.valueOf(str[0]),0);
+
+                }
+                else
+                {
+                    Customer cur_customer = new Customer();
+                    cur_customer.setCustomer(Integer.valueOf(str[1]),Integer.valueOf(str[2]),Integer.valueOf(str[0])-1,Integer.valueOf(str[3]));
+                    customers.add(cur_customer);
+                }
+                i++;
             }
+
+
         }
         catch(IOException e)
         {
-
+            e.printStackTrace();
         }
     }
-    public static void input_io()//命令行读取
+    public static void solutionPrinter(Boolean If_io,Solution solution)//输出解，可以输出到文件和其他
     {
-
-    }
-
-
-
-
-        class Route /*路径类，一个路径代表了一个解*/
-    {
-        ArrayList<Customer> route_number = new ArrayList<>();//用列表存放车辆路径
-        double route_weight = 0; //车辆路径的容量
-        double route_length = 0;
-    }
-    class Customer//顾客类，
-    {
-        int x;
-        int y;//顾客位置
-        int goods_need;//需求量
-        public void setCustomer(int x,int y,int goods_need)//初始化方法
+        if(If_io)//
         {
-            this.x = x;
-            this.y = y;
-            this.goods_need = goods_need;
+            print(solution);
+        }
+        else
+        {
+            try {
+                PrintStream ps = new PrintStream(new FileOutputStream("result.txt"));
+                System.setOut(ps);
+                print(solution);
+            }
+            catch (IOException e)
+            {
+
+            }
+
         }
 
     }
-    class  goods_center extends Customer //配送中心，继承顾客类，多态
+
+    public static  void print(Solution solution)
     {
-        int goods_need = 0;
+        for(int i=0;i<solution.route_Vehicle.size();i++) {
+            System.out.println("Vehicle" + i + ":");
+            Vehicle cur_Vehicle = solution.route_Vehicle.get(i);
+            for (Customer number : cur_Vehicle.route_number) {
+                System.out.println(number.id);
+                System.out.println("-");
+            }
+        }
+        System.out.println("该解总花费为" + solution.total_length);
+
+
+
+    }
+
+    public static void Initialization()//初始化距离矩阵
+    {
+        cost_matrix = new double[customerNumber][customerNumber];//指向引用
+        for(int i=0;i<customerNumber;i++)
+            for(int j=0;j<customerNumber;j++)
+            {
+                if(i == 0)//配送中心的情况
+                {
+                    cost_matrix[i][j] = distance(depot,customers.get(j));
+                    continue;
+                }
+                if(j == 0)
+                {
+                    cost_matrix[i][j] = distance(customers.get(j),depot);
+                }
+                cost_matrix[i][j] = distance(customers.get(i),customers.get(j));
+
+            }
+
+    }
+    public static Solution random_solution()//随机生成一个solution
+    {
+        Solution solution = new Solution();
+
+
+
+        return solution;
+    }
+    public static Vehicle random_Vechile()//随机生成一个Vehicle
+    {
+        Vehicle vehicle = new Vehicle();
+        return vehicle;
+    }
+    public static Solution neibor_solution(Solution last_solution)//邻域操作
+    {
+        Solution solution = new Solution();
+
+
+
+        return solution;
+    }
+    public static void main(String args[])
+    {
+        input_txt("input.vrp");
+        Initialization();
+        for(int i=0;i<vehicleNumber;i++)
+            for(int j=0;j<vehicleNumber;j++)
+                System.out.println(cost_matrix[i][j]);
+
     }
 
 }

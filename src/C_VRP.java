@@ -14,15 +14,17 @@ class Vehicle
     double route_length = 0; //长度
     double CAPACITY = 0;//容量约束
     public void setRoute_weight() {
+        this.route_weight = 0;
         for(Customer c : route_number)
         {
-            this.route_length += c.goods_need;
+            this.route_weight += c.goods_need;
         }
     }
     public void setRoute_length()//获取当前路径的长度
     {
 
         //开头和结尾
+        this.route_length = 0;
         this.route_length += C_VRP.cost_matrix[C_VRP.depot.id][route_number.get(0).id];
         this.route_length += C_VRP.cost_matrix[C_VRP.depot.id][route_number.get(route_number.size()-1).id];
 
@@ -42,7 +44,8 @@ class Solution
     int total_length = 0 ;//路径总长
     public void setTotal_length()//获取总路径长度
     {
-        for(Vehicle v:route_Vehicle) total_length += v.route_length;
+        this.total_length = 0;
+        for(Vehicle v:route_Vehicle) this.total_length += v.route_length;
     }
 
 }
@@ -143,13 +146,18 @@ public class C_VRP {
     }
 
     public static void print(Solution solution) {
+
         for (int i = 0; i < solution.route_Vehicle.size(); i++) {
             System.out.println("Vehicle" + i + ":");
             Vehicle cur_Vehicle = solution.route_Vehicle.get(i);
             for (Customer number : cur_Vehicle.route_number) {
-                System.out.println(number.id);
-                System.out.println("-");
+                System.out.print(number.id);
+                if(number.to_id!=0) System.out.print("-");
+
             }
+
+            System.out.println("车辆"+i+"的长度:"+cur_Vehicle.route_length);
+            System.out.println("车辆"+i+"的承载货物:"+cur_Vehicle.route_weight);
         }
         System.out.println("该解总花费为" + solution.total_length);
 
@@ -186,22 +194,34 @@ public class C_VRP {
 
         }
         Random r = new Random();
+        Vehicle vehicle = new Vehicle();
         while(Candidate_customer.size()!=0)//循环直到候选顾客数变为0
         {
+
             int i = r.nextInt(Candidate_customer.size());
-            Vehicle vehicle = new Vehicle();
-            while(vehicle.route_weight+Candidate_customer.get(i).goods_need <=CAPACITY) //贪婪算法，尽可量的服务顾客
+            if(vehicle == null)
             {
-                i = r.nextInt(Candidate_customer.size());
+                 vehicle = new Vehicle();//循环之后
+            }
+
+            if((vehicle.route_weight + Candidate_customer.get(i).goods_need) <=CAPACITY) //贪婪算法，尽可量的服务顾客
+            {
+                if(vehicle.route_number.size()!=0) vehicle.route_number.get(vehicle.route_number.size()-1).to_id = Candidate_customer.get(i).id;
                 vehicle.route_number.add(Candidate_customer.get(i));
                 Candidate_customer.remove(i);//加入的就移除
+
                 vehicle.setRoute_length();
                 vehicle.setRoute_weight();//更新路径
-
             }
-            solution.route_Vehicle.add(vehicle);
+            else {
+                vehicle.route_number.get(vehicle.route_number.size()-1).to_id = 0;//最后一个设回起点
 
+                solution.route_Vehicle.add(vehicle);
+
+                vehicle = null;
+            }
         }
+        solution.setTotal_length();
 
 
         return solution;
@@ -226,6 +246,12 @@ public class C_VRP {
         Initialization();
         Solution solution = random_solution();
         solutionPrinter(true,solution);
+        for(Customer each :solution.route_Vehicle.get(0).route_number)
+        {
+            System.out.print(each.id+ " ");
+            System.out.print(each.goods_need);
+            System.out.println();
+        }
         }
 
 

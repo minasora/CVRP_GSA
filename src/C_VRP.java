@@ -184,6 +184,8 @@ public class C_VRP {
             }
 
     }
+
+
     public static Solution ini_solution()//返回将每个点单独和depot连接的solution
     {
         Solution solution = new Solution();
@@ -200,6 +202,8 @@ public class C_VRP {
         return  solution;
 
     }
+
+
     public static Solution random_solution()//随机生成一个solution
     {
         Solution solution = new Solution();
@@ -270,6 +274,8 @@ public class C_VRP {
             System.out.print(each.goods_need);
             System.out.println();
         }
+        CW_algrithm.c_w_init(customerNumber);
+
         }
 
 

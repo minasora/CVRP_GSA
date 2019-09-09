@@ -18,33 +18,56 @@ import java.util.Queue;
  *
  *
  * *******************************************/
+class C_w_value//
+{
+
+    int from_id;
+    int to_id;//两点
+    double value;//两点间的节约值
+
+    public void setValue(int from_id,int to_id) {
+        this.value = C_VRP.cost_matrix[0][to_id]+C_VRP.cost_matrix[0][from_id]-C_VRP.cost_matrix[from_id][to_id];
+    }
+}
 public class CW_algrithm {
-    static Comparator<c_w_value> c_w_valueComparator = new Comparator<>() {
+    static Comparator<C_w_value> c_w_valueComparator = new Comparator<>() {
         @Override
-        public int  compare(c_w_value o1, c_w_value o2) {
+        public int  compare(C_w_value o1, C_w_value o2) {
            if(o1.value>o2.value)return  1;
            else return -1;
         }
     };//重写比较器，返回大的
-    Queue<c_w_value> c_w_values = new PriorityQueue<>();//用优先队列存储节约值
+    static Queue<C_w_value> c_w_values = new PriorityQueue<>(c_w_valueComparator);//用优先队列存储节约值
 
-
-    class c_w_value//在C_W节约算法中继承Customer类
+    public static void c_w_init(int customer_number)//初始化C_W的优先队列
     {
-        int from_id;
-        int to_id;//两点
-        double value;//两点间的节约值
+        for(int i=1;i<=customer_number;i++)
+            for(int j =i;j<=customer_number;j++)
+            {
+                if(i == j)continue;
+                C_w_value c_w_value = new C_w_value();
+                c_w_value.from_id = i;
+                c_w_value.to_id = j;
+                c_w_value.setValue(i,j);//更新节约值
+                c_w_values.add(c_w_value);//加入到优先队列中
 
-        public void setValue(int from_id,int to_id) {
-            this.value = C_VRP.cost_matrix[0][to_id]+C_VRP.cost_matrix[0][from_id]-C_VRP.cost_matrix[from_id][to_id];
+            }
+    }
+    public static void c_w_al(Solution solution)
+    {
+
+        while(c_w_values.size()!=0)//不断取点直到没点
+        {
+            C_w_value cur_c_w = new C_w_value();
+            cur_c_w = c_w_values.poll();
+            if(C_VRP.customers.get(cur_c_w.from_id).goods_need+C_VRP.customers.get(cur_c_w.to_id).goods_need+)
         }
     }
-    public void c_w_init(int number)
+    static Solution C_W(Solution solution,int customer_number)
     {
-        for(int i=0;i<)
-    }
-    static Solution C_W(Solution solution)
-    {
+
+        c_w_init(customer_number);
+        c_w_al()
         return solution;
     }
 

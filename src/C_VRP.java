@@ -1,3 +1,4 @@
+
 import java.io.*;
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -150,12 +151,13 @@ public class C_VRP {
         for (int i = 0; i < solution.route_Vehicle.size(); i++) {
             System.out.println("Vehicle" + i + ":");
             Vehicle cur_Vehicle = solution.route_Vehicle.get(i);
+            System.out.print("0-");
             for (Customer number : cur_Vehicle.route_number) {
                 System.out.print(number.id);
                 if(number.to_id!=0) System.out.print("-");
 
             }
-
+            System.out.print("-0");
             System.out.println("车辆"+i+"的长度:"+cur_Vehicle.route_length);
             System.out.println("车辆"+i+"的承载货物:"+cur_Vehicle.route_weight);
         }
@@ -182,7 +184,22 @@ public class C_VRP {
             }
 
     }
+    public static Solution ini_solution()//返回将每个点单独和depot连接的solution
+    {
+        Solution solution = new Solution();
+        for(int i=0;i<customerNumber;i++)
+        {
+            Vehicle vehicle = new Vehicle();
+            customers.get(i+1).to_id = 0;
+            vehicle.route_number.add(customers.get(i+1));
+            vehicle.setRoute_length();
+            vehicle.setRoute_weight();
+            solution.route_Vehicle.add(vehicle);
+            solution.setTotal_length();
+        }
+        return  solution;
 
+    }
     public static Solution random_solution()//随机生成一个solution
     {
         Solution solution = new Solution();
@@ -199,6 +216,7 @@ public class C_VRP {
         {
 
             int i = r.nextInt(Candidate_customer.size());
+
             if(vehicle == null)
             {
                  vehicle = new Vehicle();//循环之后
@@ -244,7 +262,7 @@ public class C_VRP {
     public static void main(String args[]) {
         input_txt("input.vrp");
         Initialization();
-        Solution solution = random_solution();
+        Solution solution = ini_solution();
         solutionPrinter(true,solution);
         for(Customer each :solution.route_Vehicle.get(0).route_number)
         {

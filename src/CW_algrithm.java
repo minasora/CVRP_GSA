@@ -30,6 +30,7 @@ class C_w_value//
     }
 }
 public class CW_algrithm {
+    Boolean If_arr[] = new Boolean[];
     static Comparator<C_w_value> c_w_valueComparator = new Comparator<>() {
         @Override
         public int  compare(C_w_value o1, C_w_value o2) {
@@ -55,12 +56,32 @@ public class CW_algrithm {
     }
     public static void c_w_al(Solution solution)
     {
-
+        Boolean If_arr[] = new Boolean[C_VRP.customerNumber];//标志是否到达
+        Vehicle vehicle = new Vehicle();
         while(c_w_values.size()!=0)//不断取点直到没点
         {
+            if(vehicle == null) {
+                 vehicle = new Vehicle();
+            }
+
             C_w_value cur_c_w = new C_w_value();
             cur_c_w = c_w_values.poll();
-            if(C_VRP.customers.get(cur_c_w.from_id).goods_need+C_VRP.customers.get(cur_c_w.to_id).goods_need+)
+            if(If_arr[cur_c_w.from_id]  || If_arr[cur_c_w.to_id])
+            {
+                continue;//假如被访问过就继续
+            }
+            if(C_VRP.customers.get(cur_c_w.from_id).goods_need+C_VRP.customers.get(cur_c_w.to_id).goods_need+solution.route_Vehicle.get(0).route_weight<=C_VRP.CAPACITY)//小于容量约束
+            {
+                vehicle.route_number.add(C_VRP.customers.get(cur_c_w.from_id));
+                vehicle.route_number.add(C_VRP.customers.get(cur_c_w.to_id));
+                vehicle.setRoute_weight();
+                vehicle.setRoute_length();
+            }
+            else
+            {
+                solution.route_Vehicle.add(vehicle);
+                vehicle = null;//不满足约束就新开路线
+            }
         }
     }
     static Solution C_W(Solution solution,int customer_number)

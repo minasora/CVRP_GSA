@@ -1,4 +1,5 @@
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
@@ -30,7 +31,6 @@ class C_w_value//
     }
 }
 public class CW_algrithm {
-    Boolean If_arr[] = new Boolean[];
     static Comparator<C_w_value> c_w_valueComparator = new Comparator<>() {
         @Override
         public int  compare(C_w_value o1, C_w_value o2) {
@@ -56,7 +56,6 @@ public class CW_algrithm {
     }
     public static void c_w_al(Solution solution)
     {
-        Boolean If_arr[] = new Boolean[C_VRP.customerNumber];//标志是否到达
         Vehicle vehicle = new Vehicle();
         while(c_w_values.size()!=0)//不断取点直到没点
         {
@@ -66,14 +65,19 @@ public class CW_algrithm {
 
             C_w_value cur_c_w = new C_w_value();
             cur_c_w = c_w_values.poll();
-            if(If_arr[cur_c_w.from_id]  || If_arr[cur_c_w.to_id])
+            if(C_VRP.customers.get(cur_c_w.from_id).goods_need+C_VRP.customers.get(cur_c_w.to_id).goods_need+vehicle.route_weight<=C_VRP.CAPACITY)//小于容量约束
             {
-                continue;//假如被访问过就继续
-            }
-            if(C_VRP.customers.get(cur_c_w.from_id).goods_need+C_VRP.customers.get(cur_c_w.to_id).goods_need+solution.route_Vehicle.get(0).route_weight<=C_VRP.CAPACITY)//小于容量约束
-            {
+                C_VRP.customers.get(cur_c_w.from_id).to_id = cur_c_w.to_id;
+                C_VRP.customers.get(cur_c_w.to_id).to_id = 0;
                 vehicle.route_number.add(C_VRP.customers.get(cur_c_w.from_id));
                 vehicle.route_number.add(C_VRP.customers.get(cur_c_w.to_id));
+                Iterator<C_w_value> itor = c_w_values.iterator();
+                while(itor.hasNext())
+                {
+                    C_w_value c_w_value = itor.next();
+                    if(c_w_value.from_id == cur_c_w.from_id )
+                        itor.remove();
+                }
                 vehicle.setRoute_weight();
                 vehicle.setRoute_length();
             }
@@ -82,13 +86,16 @@ public class CW_algrithm {
                 solution.route_Vehicle.add(vehicle);
                 vehicle = null;//不满足约束就新开路线
             }
+            solution.setTotal_length();
         }
+
     }
-    static Solution C_W(Solution solution,int customer_number)
+    static Solution C_W(int customer_number)
     {
 
         c_w_init(customer_number);
-        c_w_al()
+        Solution solution = new Solution();
+        c_w_al(solution);
         return solution;
     }
 

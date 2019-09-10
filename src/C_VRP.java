@@ -158,10 +158,10 @@ public class C_VRP {
 
             }
             System.out.print("-0");
-            System.out.println("车辆"+i+"的长度:"+cur_Vehicle.route_length);
+            System.out.println("车辆"+i+"的路线长度:"+cur_Vehicle.route_length);
             System.out.println("车辆"+i+"的承载货物:"+cur_Vehicle.route_weight);
         }
-        System.out.println("该解总花费为" + solution.total_length);
+        System.out.println("该解总长度为" + solution.total_length);
 
 
     }
@@ -229,6 +229,7 @@ public class C_VRP {
             if((vehicle.route_weight + Candidate_customer.get(i).goods_need) <=CAPACITY) //贪婪算法，尽可量的服务顾客
             {
                 if(vehicle.route_number.size()!=0) vehicle.route_number.get(vehicle.route_number.size()-1).to_id = Candidate_customer.get(i).id;
+
                 vehicle.route_number.add(Candidate_customer.get(i));
                 Candidate_customer.remove(i);//加入的就移除
 
@@ -266,15 +267,9 @@ public class C_VRP {
     public static void main(String args[]) {
         input_txt("input.vrp");
         Initialization();
-        Solution solution = ini_solution();
+        Solution solution = CW_algrithm.C_W(customerNumber);
+        System.out.print(solution.route_Vehicle.size());
         solutionPrinter(true,solution);
-        for(Customer each :solution.route_Vehicle.get(0).route_number)
-        {
-            System.out.print(each.id+ " ");
-            System.out.print(each.goods_need);
-            System.out.println();
-        }
-        CW_algrithm.c_w_init(customerNumber);
 
         }
 

@@ -35,18 +35,19 @@ public class CW_algrithm {
     static Comparator<C_w_value> c_w_valueComparator = new Comparator<>() {
         @Override
         public int  compare(C_w_value o1, C_w_value o2) {
-           if(o1.value>o2.value)return  1;
-           else return -1;
+           if(o1.value>o2.value)return  -1;
+           else return 1;
         }
     };//重写比较器，返回大的
     static Queue<C_w_value> c_w_values = new PriorityQueue<>(c_w_valueComparator);//用优先队列存储节约值
-
+    static Queue<C_w_value> c_w_values_back = new PriorityQueue<>(c_w_valueComparator);
 
     public static void c_w_init(int customer_number)//初始化C_W的优先队列
     {
         for(int i=1;i<=customer_number;i++)
             for(int j =i;j<=customer_number;j++)
             {
+
                 if(i == j)continue;
                 C_w_value c_w_value = new C_w_value();
                 c_w_value.from_id = i;
@@ -60,14 +61,18 @@ public class CW_algrithm {
     public static void c_w_al(Solution solution)
     {
         Vehicle vehicle = new Vehicle();
+
         while(c_w_values.size()!=0)//不断取点直到没点
         {
+
+
             if(vehicle == null) {
                  vehicle = new Vehicle();
             }
 
             C_w_value cur_c_w = new C_w_value();
             cur_c_w = c_w_values.poll();
+
 
             if(C_VRP.customers.get(cur_c_w.from_id).goods_need+C_VRP.customers.get(cur_c_w.to_id).goods_need+vehicle.route_weight<=C_VRP.CAPACITY)//小于容量约束
             {
@@ -76,11 +81,14 @@ public class CW_algrithm {
                 {
                     int first_id = vehicle.route_number.get(0).id;
                     int end_id = vehicle.route_number.get(vehicle.route_number.size()-1).id;
-                    if((cur_c_w.from_id == first_id && cur_c_w.to_id == end_id)||(cur_c_w.from_id == end_id && cur_c_w.to_id == first_id))continue;//去除循环
 
-                   if(cur_c_w.from_id == first_id)
+                    if((cur_c_w.from_id == first_id && cur_c_w.to_id == end_id)||(cur_c_w.from_id == end_id && cur_c_w.to_id == first_id)) {
+                        continue;//去除循环
+                    }
+                   else if(cur_c_w.from_id == first_id)
                    {
                        C_VRP.customers.get(cur_c_w.to_id).to_id = first_id;
+
                        vehicle.route_number.add(0,C_VRP.customers.get(cur_c_w.to_id));
 
                        //check(cur_c_w);
@@ -119,6 +127,9 @@ public class CW_algrithm {
                        continue;
                    }
                    else {
+
+                       c_w_values_back.add(cur_c_w);
+                       //System.out.println(c_w_values_back.size());
                        continue;
                    }
                 }
@@ -132,7 +143,13 @@ public class CW_algrithm {
             }
             else//不满足约束就新开路线
             {
-                vehicle.route_number.get(vehicle.route_number.size()-1).to_id = 0;
+
+
+                vehicle.route_number.get(vehicle.route_number.size()-1).to_id = 0;//最后一个终点设为0
+                solution.route_Vehicle.add(vehicle);
+                c_w_values.addAll(c_w_values_back);
+                c_w_values_back.clear();
+
                 Iterator<C_w_value> itor = c_w_values.iterator();
                 while(itor.hasNext())
                 {
@@ -148,7 +165,6 @@ public class CW_algrithm {
                     }
 
                 }
-                solution.route_Vehicle.add(vehicle);
 
                 vehicle = null;
             }

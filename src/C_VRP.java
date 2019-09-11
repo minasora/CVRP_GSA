@@ -14,6 +14,10 @@ class Vehicle
     double route_weight = 0; //车辆路径的当前容量
     double route_length = 0; //长度
     double CAPACITY = 0;//容量约束
+    public  void print()
+    {
+        for(Customer c:this.route_number)System.out.print(c.id+" ");
+    }
     public void set_all()
     {
         setRoute_length();
@@ -48,10 +52,18 @@ class Solution
     ArrayList<Vehicle> route_Vehicle = new ArrayList<>();//用列表存放车辆路径
     int vehicle_number = 0;//车辆数量
     double total_length = 0 ;//路径总长
+    int total_weight = 0;
+
     public void setTotal_length()//获取总路径长度
     {
         this.total_length = 0;
         for(Vehicle v:route_Vehicle) this.total_length += v.route_length;
+    }
+    public void setTotal_weight()
+
+    {
+        this.total_weight = 0;
+        for(Vehicle v:route_Vehicle)this.total_weight += v.route_weight;
     }
 
 }
@@ -63,7 +75,7 @@ class Customer//顾客类，
     int x;
     int y;//顾客位置
     int goods_need;//需求量
-    int to_id;//要去的下一个目标
+    int to_id = 0;//要去的下一个目标
     public void setCustomer(int x,int y,int id,int goods_need)//初始化方法
     {
         this.x = x;
@@ -167,6 +179,10 @@ public class C_VRP {
             System.out.println("车辆"+(i+1)+"的承载货物:"+cur_Vehicle.route_weight);
         }
         System.out.println("该解总长度为" + solution.total_length);
+        System.out.println("该解总容载量为"+ solution.total_weight);
+        int a=0;
+        for(Vehicle v :solution.route_Vehicle)a+=v.route_number.size();
+        System.out.println("该解总服务顾客数"+a);
 
 
     }
@@ -274,7 +290,12 @@ public class C_VRP {
         Initialization();
         Solution solution = CW_algrithm.C_W(customerNumber);
         solutionPrinter(true,solution);
-
+        int total_weight = 0;
+        for(Customer c : customers)
+        {
+            total_weight+=c.goods_need;
+        }
+       System.out.println(solution.route_Vehicle.get(0).route_number.get(3).to_id);
         }
 
 

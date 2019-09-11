@@ -34,129 +34,182 @@ class C_w_value//
 public class CW_algrithm {
     static Comparator<C_w_value> c_w_valueComparator = new Comparator<>() {
         @Override
-        public int  compare(C_w_value o1, C_w_value o2) {
-           if(o1.value>o2.value)return  1;
-           else return -1;
+        public int compare(C_w_value o1, C_w_value o2) {
+            if (o1.value > o2.value) return -1;
+            else return 1;
         }
     };//重写比较器，返回大的
     static Queue<C_w_value> c_w_values = new PriorityQueue<>(c_w_valueComparator);//用优先队列存储节约值
-
+    static Queue<C_w_value> c_w_values_back = new PriorityQueue<>(c_w_valueComparator);//另一个储存不用的
 
     public static void c_w_init(int customer_number)//初始化C_W的优先队列
     {
-        for(int i=1;i<=customer_number;i++)
-            for(int j =i;j<=customer_number;j++)
-            {
-                if(i == j)continue;
+        for (int i = 1; i <= customer_number; i++)
+            for (int j = i; j <= customer_number; j++) {
+                if (i == j) continue;
                 C_w_value c_w_value = new C_w_value();
                 c_w_value.from_id = i;
                 c_w_value.to_id = j;
-                c_w_value.setValue(i,j);//更新节约值
+                c_w_value.setValue(i, j);//更新节约值
                 c_w_values.add(c_w_value);//加入到优先队列中
 
             }
     }
-
-    public static void c_w_al(Solution solution)
+    public static int  check()
     {
+        int i=0;
+        for(C_w_value k :c_w_values)
+            if(k.to_id==30||k.from_id==30)
+                i++;
+        for(C_w_value k :c_w_values_back)
+            if(k.to_id==30||k.from_id==30)
+                i++;
+
+        return i;
+    }
+
+    public static void c_w_al(Solution solution) {
+
+        Boolean If_can = false;
+        Boolean If_in = false;
         Vehicle vehicle = new Vehicle();
-        while(c_w_values.size()!=0)//不断取点直到没点
-        {
-            if(vehicle == null) {
-                 vehicle = new Vehicle();
-            }
+        while (c_w_values.size() != 0) {
+            If_in = false;
+            C_w_value cur_c_w = c_w_values.poll();
 
-            C_w_value cur_c_w = new C_w_value();
-            cur_c_w = c_w_values.poll();
+            if (vehicle.route_number.size() == 0) {
+                vehicle.route_number.add(C_VRP.customers.get(cur_c_w.from_id));
+                vehicle.route_number.add(C_VRP.customers.get(cur_c_w.to_id));
+                vehicle.route_number.get(0).to_id = cur_c_w.to_id;
+                vehicle.set_all();
 
-            if(C_VRP.customers.get(cur_c_w.from_id).goods_need+C_VRP.customers.get(cur_c_w.to_id).goods_need+vehicle.route_weight<=C_VRP.CAPACITY)//小于容量约束
-            {
 
-                if(vehicle.route_number.size()!=0)
-                {
-                    int first_id = vehicle.route_number.get(0).id;
-                    int end_id = vehicle.route_number.get(vehicle.route_number.size()-1).id;
-                    if((cur_c_w.from_id == first_id && cur_c_w.to_id == end_id)||(cur_c_w.from_id == end_id && cur_c_w.to_id == first_id))continue;//去除循环
+            } else {
+                int first_id = vehicle.route_number.get(0).id;
+                int last_id = vehicle.route_number.get(vehicle.route_number.size() - 1).id;//沿着开始和结束找
 
-                   if(cur_c_w.from_id == first_id)
-                   {
-                       C_VRP.customers.get(cur_c_w.to_id).to_id = first_id;
-                       vehicle.route_number.add(0,C_VRP.customers.get(cur_c_w.to_id));
-
-                       //check(cur_c_w);
-
-                       vehicle.set_all();
-                       continue;
-                   }
-                   else if(cur_c_w.to_id == first_id)
-                   {
-                       C_VRP.customers.get(cur_c_w.from_id).to_id = first_id;
-                       vehicle.route_number.add(0,C_VRP.customers.get(cur_c_w.from_id));
-                       vehicle.set_all();
-
-                       //check(cur_c_w);
-
-                       continue;
-                   }
-                   else if(cur_c_w.from_id == end_id)
-                   {
-                       vehicle.route_number.get(vehicle.route_number.size()-1).to_id = cur_c_w.to_id;
-                       vehicle.route_number.add(C_VRP.customers.get(cur_c_w.to_id));
-                       vehicle.set_all();
-
-                       //check(cur_c_w);
-
-                       continue;
-                   }
-                   else if(cur_c_w.to_id == end_id)
-                   {
-                       C_VRP.customers.get(vehicle.route_number.size()-1).to_id = cur_c_w.from_id;
-                       vehicle.route_number.add(C_VRP.customers.get(cur_c_w.from_id));
-                       vehicle.set_all();
-
-                       //check(cur_c_w);
-
-                       continue;
-                   }
-                   else {
-                       continue;
-                   }
-                }
-                else
-                    {
-                    C_VRP.customers.get(cur_c_w.from_id).to_id = cur_c_w.to_id;
-                    vehicle.route_number.add(C_VRP.customers.get(cur_c_w.from_id));
-                    vehicle.route_number.add(C_VRP.customers.get(cur_c_w.to_id));
-                }
-
-            }
-            else//不满足约束就新开路线
-            {
-                vehicle.route_number.get(vehicle.route_number.size()-1).to_id = 0;
-                Iterator<C_w_value> itor = c_w_values.iterator();
-                while(itor.hasNext())
-                {
-                    C_w_value c_w_value = itor.next();
-
-                    for(Customer customer : vehicle.route_number)
-                    {
-                        if(c_w_value.from_id == customer.id || c_w_value.to_id == customer.id )
+                if (first_id == cur_c_w.from_id || first_id == cur_c_w.to_id) {
+                    Customer c;
+                    if (first_id == cur_c_w.from_id) {
+                        for(Customer c1 :vehicle.route_number)
+                            if(c1.id == cur_c_w.to_id)
+                            {
+                                If_in = true;
+                                break;
+                            }
+                        if(If_in)
                         {
-                            itor.remove();
-                            break;
+                            If_in = false;
+                            continue;
                         }
+                        c = C_VRP.customers.get(cur_c_w.to_id);
+                    }
+                    else{
+
+                            for(Customer c1 :vehicle.route_number)
+                                if(c1.id == cur_c_w.from_id)
+                                {
+                                    If_in = true;
+                                    break;
+                                }
+                            if(If_in)
+                            {
+                                If_in = false;
+                                continue;
+                            }
+                        c = C_VRP.customers.get(cur_c_w.from_id);
+                    }
+                    if (vehicle.route_weight + c.goods_need < C_VRP.CAPACITY) {
+
+                        c.to_id = vehicle.route_number.get(0).id;
+                        vehicle.route_number.add(0, c);
+                        vehicle.set_all();
+                        Iterator<C_w_value> itor = c_w_values.iterator();
+                        while (itor.hasNext()) {
+                            C_w_value cw = itor.next();
+                            if (cw.from_id == vehicle.route_number.get(1).id || cw.to_id == vehicle.route_number.get(1).id) {
+
+                                    itor.remove();
+                            }
+                        }
+                    } else {
+                        If_can = true;
+                    }
+                } else if (last_id == cur_c_w.to_id || last_id == cur_c_w.from_id)//沿着结束找
+                {
+
+                    Customer c;
+                    if (last_id == cur_c_w.from_id) c = C_VRP.customers.get(cur_c_w.to_id);
+                    else c = C_VRP.customers.get(cur_c_w.from_id);
+                    if (vehicle.route_weight + c.goods_need < C_VRP.CAPACITY) {
+                        vehicle.route_number.get(vehicle.route_number.size()-1).to_id = c.id;
+                        vehicle.route_number.add(c);
+                        vehicle.set_all();
+                        Iterator<C_w_value> itor = c_w_values.iterator();
+                        while (itor.hasNext()) {
+                            C_w_value cw = itor.next();
+
+                            if (cw.from_id == vehicle.route_number.get(vehicle.route_number.size() - 2).id || cw.to_id == vehicle.route_number.get(vehicle.route_number.size() - 2).id)
+                                itor.remove();
+
+                        }
+                    }
+                    else {
+                        If_can = true;
                     }
 
                 }
-                solution.route_Vehicle.add(vehicle);
+                else//剩下的应该是不在之中的？
+                {
+                    c_w_values_back.add(cur_c_w);
+                    //vehicle.print();
+                    //System.out.println();
+                }
+                if (If_can)//新建路线
+                {
 
-                vehicle = null;
+                    vehicle.route_number.get(vehicle.route_number.size() - 1).to_id = 0;
+                    solution.route_Vehicle.add(vehicle);
+
+
+                    c_w_values.addAll(c_w_values_back);
+                    c_w_values_back.clear();
+                    Iterator<C_w_value> itor = c_w_values.iterator();
+                    while (itor.hasNext()) {
+
+                        C_w_value cw = itor.next();
+                        if (cw.from_id == vehicle.route_number.get(vehicle.route_number.size() - 1).id || cw.to_id == vehicle.route_number.get(vehicle.route_number.size() - 1).id || cw.to_id == vehicle.route_number.get(0).id || cw.from_id == vehicle.route_number.get(0).id) {
+                            itor.remove();
+                        }
+                    }
+
+
+                    vehicle = new Vehicle();
+
+
+                    If_can = false;
+                    continue;
+                }
+
             }
+            if (c_w_values.size() == 0 && c_w_values_back.size() != 0) {
 
+                //System.out.println(c_w_values_back.size());
+                c_w_values.addAll(c_w_values_back);
+                vehicle = new Vehicle();
+                c_w_values_back.clear();
+                If_can = false;
+            }
+            if(c_w_values.size() == 0 && c_w_values_back.size() == 0)
+                if(vehicle.route_number.size()!=0) {
+
+                    vehicle.route_number.get(vehicle.route_number.size()-1).to_id=0;
+                    solution.route_Vehicle.add(vehicle);
+                }
         }
-        if(solution.route_Vehicle.size()==0)solution.route_Vehicle.add(vehicle);
 
-        solution.setTotal_length();
+      solution.setTotal_length();
+      solution.setTotal_weight();
 
     }
     static Solution C_W(int customer_number)

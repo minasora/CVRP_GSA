@@ -10,11 +10,14 @@ import java.util.regex.*;
 /* VRP问题的模型*/
 class Vehicle
 {
-
     ArrayList<Customer> route_number = new ArrayList<>();//用列表存放车辆路径
     double route_weight = 0; //车辆路径的当前容量
     double route_length = 0; //长度
     double CAPACITY = 0;//容量约束
+    public  void print()
+    {
+        for(Customer c:this.route_number)System.out.print(c.id+" ");
+    }
     public void set_all()
     {
         setRoute_length();
@@ -49,19 +52,18 @@ class Solution
     ArrayList<Vehicle> route_Vehicle = new ArrayList<>();//用列表存放车辆路径
     int vehicle_number = 0;//车辆数量
     double total_length = 0 ;//路径总长
+    int total_weight = 0;
+
     public void setTotal_length()//获取总路径长度
     {
         this.total_length = 0;
         for(Vehicle v:route_Vehicle) this.total_length += v.route_length;
     }
-    public int getTotal_customer()//返回服务的顾客数
+    public void setTotal_weight()
+
     {
-        int total_customer = 0;
-        for(Vehicle v : this.route_Vehicle)
-        {
-            total_customer += v.route_number.size();
-        }
-        return total_customer;
+        this.total_weight = 0;
+        for(Vehicle v:route_Vehicle)this.total_weight += v.route_weight;
     }
 
 }
@@ -73,7 +75,7 @@ class Customer//顾客类，
     int x;
     int y;//顾客位置
     int goods_need;//需求量
-    int to_id;//要去的下一个目标
+    int to_id = 0;//要去的下一个目标
     public void setCustomer(int x,int y,int id,int goods_need)//初始化方法
     {
         this.x = x;
@@ -82,16 +84,8 @@ class Customer//顾客类，
         this.goods_need = goods_need;
         this.to_id = id;
     }
-    public void swapCustomer(Customer e)//将一个Customer 赋值给e
-    {
-        this.x = e.x;
-        this.y = e.y;
-        this.id = e.id;
-        this.goods_need = e.goods_need;
-        this.to_id = e.to_id;
-    }
-}
 
+}
 class  Depot extends Customer //配送中心，继承顾客类，多态
 {
     int goods_need = 0;
@@ -185,7 +179,10 @@ public class C_VRP {
             System.out.println("车辆"+(i+1)+"的承载货物:"+cur_Vehicle.route_weight);
         }
         System.out.println("该解总长度为" + solution.total_length);
-        System.out.println("总服务节点"+solution.getTotal_customer());
+        System.out.println("该解总容载量为"+ solution.total_weight);
+        int a=0;
+        for(Vehicle v :solution.route_Vehicle)a+=v.route_number.size();
+        System.out.println("该解总服务顾客数"+a);
 
 
     }
@@ -280,94 +277,31 @@ public class C_VRP {
         return vehicle;
     }
 
-
-    public static Solution neibor_solution(Solution last_solution)//邻域操作，返回一个新的解
+    public static Solution neibor_solution(Solution last_solution)//邻域操作
     {
         Solution solution = new Solution();
-        solution = two_opt(last_solution);
-        System.out.println(last_solution.total_length);
-        solution = two_opt_star(solution);
-        System.out.println(last_solution.total_length);
+
+
         return solution;
     }
-    public static Solution two_opt(Solution last_solution)//2-opt
-    {
-        //随机选择一条路线，随机交换两点，即reserve操作
-        Random r = new Random();
-        int i = r.nextInt(last_solution.route_Vehicle.size()-1);
-        double last_weight = last_solution.route_Vehicle.get(i).route_length;
-        Vehicle new_Vehicle = new Vehicle();
-        new_Vehicle.route_number.addAll(last_solution.route_Vehicle.get(i).route_number);
 
-        int j1 = r.nextInt(new_Vehicle.route_number.size()-2);
-        int j2 = r.nextInt(new_Vehicle.route_number.size()-2);
-        if(j1 != j2)//反转j1,j2两个元素
-        {
-            Customer mid = new Customer();
-            mid.swapCustomer(new_Vehicle.route_number.get(j1));
-            new_Vehicle.route_number.get(j1).swapCustomer(last_solution.route_Vehicle.get(i).route_number.get(j2));
-            new_Vehicle.route_number.get(j2).swapCustomer(mid);
-
-            new_Vehicle.set_all();
-            if(new_Vehicle.route_length<last_weight)//有改进就接受
-            {
-                last_solution.route_Vehicle.remove(i);
-                last_solution.route_Vehicle.add(new_Vehicle);
-                last_solution.setTotal_length();
-            }
-
-        }
-        return last_solution;
-
-    }
-
-    public static Solution two_opt_star(Solution last_solution)//2-opt*
-    {
-
-        Random r = new Random();
-        int i1 = r.nextInt(last_solution.route_Vehicle.size() - 1);
-        int i2 = r.nextInt(last_solution.route_Vehicle.size() - 1);
-        if (i1 != i2) {
-            Vehicle v1 = new Vehicle();
-            Vehicle v2 = new Vehicle();
-            v1.route_number.addAll(last_solution.route_Vehicle.get(i1).route_number);
-            v2.route_number.addAll(last_solution.route_Vehicle.get(i2).route_number);
-            v1.set_all();
-            v2.set_all();
-            double last_length = v1.route_length + v2.route_length;
-            int j1 = r.nextInt(v1.route_number.size() - 2);
-            int j2 = r.nextInt(v2.route_number.size() - 2);
-            Customer mid = new Customer();
-            mid.swapCustomer(v2.route_number.get(j2));
-            v2.route_number.get(j2).swapCustomer(v1.route_number.get(j1));
-            v1.route_number.get(j1).swapCustomer(mid);
-            v1.set_all();
-            v2.set_all();
-            if (v1.route_length + v2.route_length < last_length) {
-                last_solution.route_Vehicle.remove(i1);
-                last_solution.route_Vehicle.add(i1,v1);
-                last_solution.route_Vehicle.remove(i2);
-                last_solution.route_Vehicle.add(i2,v2);
-                last_solution.setTotal_length();
-            }
-            return last_solution;
-
-        }
-        else  return last_solution;
-    }
     public static void main(String args[]) {
         input_txt("input.vrp");
         Initialization();
         Solution solution = CW_algrithm.C_W(customerNumber);
         solutionPrinter(true,solution);
-        //for(int i = 1;i<=100;i++)
-        //{
-          //  solution = neibor_solution(solution);
-
-        //}
-       // solutionPrinter(true,solution);
-
-    }
+        int total_weight = 0;
+        for(Customer c : customers)
+        {
+            total_weight+=c.goods_need;
+        }
+        int Total_weight=0;
+        for(Customer c :customers)
+        {
+            Total_weight+=c.goods_need;
+        }
+       System.out.println("总应服务量"+Total_weight);
+        }
 
 
     }
